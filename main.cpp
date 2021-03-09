@@ -4,10 +4,10 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-    char* filePath = "./calendar.ics";
+    string filePath = "./calendar.ics";
     ifstream iCal;
-    if (argc == 1)
-        filePath = argv[0];
+    if (argc == 2)
+        filePath = argv[1];
     cout << filePath << endl;
     iCal.open(filePath);
     if(iCal.is_open()) {
