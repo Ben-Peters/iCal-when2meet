@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
     if (argc == 1)
         filePath = argv[0];
     cout << filePath << endl;
-    iCal.open(filePath,ios::in);
+    iCal.open(filePath);
     if(iCal.is_open()) {
         string line;
         while (getline(iCal, line)) {
