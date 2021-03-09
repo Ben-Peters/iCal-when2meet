@@ -1,0 +1,11 @@
+.idea/*
+.idea/*
+cmake-build-debug/*
+CMakeLists.txt
+/shelf/
+/workspace.xml
+# Datasource local storage ignored files
+/../../../../../../:\Users\ben\Documents\iCal-when2meet\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
