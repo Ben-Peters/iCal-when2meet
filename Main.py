@@ -1,7 +1,4 @@
 import vobject
-from icalendar import Calendar, Event
-from datetime import datetime
-from pytz import UTC
 
 iCalStream = open("calendar.ics").read()
 
