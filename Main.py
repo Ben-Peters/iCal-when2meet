@@ -2,6 +2,8 @@ import vobject
 import argparse
 from datetime import *
 import requests
+import recurring_ical_events
+import icalendar
 import os
 
 parser = argparse.ArgumentParser()
@@ -48,8 +50,9 @@ class When2Meet:
     def initEventID(self):
         self.eventID = self.url.split('?')[1].split('-')[0]
 
-    def setUnavailable(self, day, startTime, endTime):
+    def setUnavailable(self, startTime, endTime):
         # todo: make this work
+
         return
 
 
@@ -133,7 +136,14 @@ def addMeetingData(filepath, meeting):
 
 
 def updateMeeting(cal, meeting):
-    # todo
+    events = recurring_ical_events.of(cal).between(meeting.startTime, meeting.endTime)
+    for event in events:
+        if event.get('X-MICROSOFT-CDO-BUSYSTATUS') == 'BUSY':
+            meeting.setUnavailable(event.get('dtstart').dt, event.get('dtend').dt)
+        print(event.get('summary'), end='')
+        print(': ', end='')
+        print(event.get('dtstart').dt)
+
     return
 
 
@@ -175,8 +185,8 @@ def cleanupFiles(fileList):
 def main():
     when2meetFiles = getFromWeb(urlFile)
     iCalStream = open(static).read()
-    calObj = vobject.readOne(iCalStream)
-    cal = calObj.contents.get('vevent')
+    cal = icalendar.Calendar.from_ical(iCalStream)
+    # cal = calObj.contents.get('vevent')
     for file in when2meetFiles:
         meeting = When2Meet()
         addMeetingData(file, meeting)
