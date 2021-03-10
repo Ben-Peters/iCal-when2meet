@@ -32,16 +32,21 @@ class When2Meet:
     availability = []
     eventID = 0
     slots = startTime
+    personID = 0
 
     def calculateLength(self):
-        self.days = (self.endTime - self.startTime).days
+        self.days = (self.endTime - self.startTime).days + 1
         self.hours = (self.endTime.hour - self.startTime.hour)
-        #self.slots = (self.startTime-datetime(1970, 1, 1)+timedelta(hours=5)).total_seconds()
+        # self.slots = (self.startTime-datetime(1970, 1, 1)+timedelta(hours=5)).total_seconds()
         print(self.slots)
         print(self.hours)
 
     def initAvailability(self):
-        self.availability = [True for i in range(self.days.days * (int(self.hours.seconds / 3600) * 4))]
+        for i in range(self.days * self.hours * 4):
+            self.availability.append('1')
+
+    def initEventID(self):
+        self.eventID = self.url.split('?')[1].split('-')[0]
 
     def setUnavailable(self, day, startTime, endTime):
         # todo: make this work
@@ -53,13 +58,13 @@ def parseCal(filepath):
 
     cal = vobject.readOne(iCalStream)
     for event in cal.contents.get('vevent'):
+
         if verbosity == 2:
             try:
                 print('Summary: ', event.summary.valueRepr())
                 print('Description: ', event.description.valueRepr())
                 print('Time (as a datetime object): ', event.dtstart.value)
                 print('-------------------------------------------------\n')
-
             except AttributeError:
                 print("Something wasn't found")
     return
@@ -115,13 +120,14 @@ def addMeetingData(filepath, meeting):
             meeting.slots = line.split('=')[1].split(";")[0]
             print(meeting.startTime)
         if ("var AvailableIDs=new Array();" in line and "TimeOfSlot" in twoAgo) or \
-           ("PeopleNames[0]" in line and "TimeOfSlot" in twoAgo):
+                ("PeopleNames[0]" in line and "TimeOfSlot" in twoAgo):
             meeting.endTime = datetime.fromtimestamp(int(twoAgo.split('=')[1].split(";")[0])) + timedelta(minutes=15)
             print(meeting.endTime)
         twoAgo = lastLine
         lastLine = line
     meeting.calculateLength()
-    meeting.availability = [True for i in range(meeting.days*meeting.hours*4)]
+    meeting.initAvailability()
+    meeting.initEventID()
     file.close()
     return
 
@@ -131,18 +137,33 @@ def updateMeeting(cal, meeting):
     return
 
 
-def makeLoginPost():
-    # todo
+def login(meeting):
+    file = open('creds.jpg', 'r')
+    name = file.readline().split('\n')[0]
+    password = file.readline().split('\n')[0]
+    meetingID = meeting.eventID
+    file.close()
+    url = 'https://www.when2meet.com/ProcessLogin.php'
+    formData = {'id': meetingID,
+                'name': name,
+                'password': password,
+                '_': ''}
+    response = requests.post(url, data=formData)
+    meeting.personID = response.text
+    print(response.text)
     return
 
 
-def createPostMsg(meeting):
-    # todo
-    return
+def postAvail(meeting):
+    url = 'https://www.when2meet.com/SaveTimes.php'
 
-
-def sendPost(msg):
-    # todo
+    formData = {'person': meeting.personID,
+                'event': meeting.eventID,
+                'slots': meeting.slots,
+                'availability': ''.join(meeting.availability),
+                '_': ''}
+    response = requests.post(url, data=formData)
+    print(response)
     return
 
 
@@ -153,18 +174,15 @@ def cleanupFiles(fileList):
 
 def main():
     when2meetFiles = getFromWeb(urlFile)
-    when2meets = []
+    iCalStream = open(static).read()
+    calObj = vobject.readOne(iCalStream)
+    cal = calObj.contents.get('vevent')
     for file in when2meetFiles:
         meeting = When2Meet()
         addMeetingData(file, meeting)
-        when2meets.append(meeting)
-    cal = parseCal(static)
-    postMsg = [makeLoginPost()]
-    for meeting in when2meets:
+        login(meeting)
         updateMeeting(cal, meeting)
-        postMsg.append(createPostMsg(meeting))
-    for msg in postMsg:
-        sendPost(msg)
+        postAvail(meeting)
     cleanupFiles(when2meetFiles)
     return
 
