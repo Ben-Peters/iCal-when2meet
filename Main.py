@@ -9,12 +9,15 @@ parser.add_argument('--filepath', type=str, help='filepath to text file with iCa
                                                  'urls to update (default: ./urls.txt)', default='urls.txt')
 parser.add_argument('--verbosity', type=int, choices=[0, 1, 2], help='0:No output 1:Changes made 2:debugging output')
 parser.add_argument('--static', type=str, help='filepath of local iCal file to use')
+# parser.add_argument('--update', type=bool, default=True, help='Set to false to use already downloaded calendar')
 args = parser.parse_args()
 
 urlFile = args.filepath
 verbosity = args.verbosity
+updateCal = True
 if args.static:
     static = args.static
+    updateCal = False
 else:
     static = 'calendar.ics'
 
@@ -33,7 +36,7 @@ class When2Meet:
     def calculateLength(self):
         self.days = (self.endTime - self.startTime).days
         self.hours = (self.endTime.hour - self.startTime.hour)
-        self.slots = (self.startTime-datetime(1970, 1, 1)+timedelta(hours=5)).total_seconds()
+        #self.slots = (self.startTime-datetime(1970, 1, 1)+timedelta(hours=5)).total_seconds()
         print(self.slots)
         print(self.hours)
 
@@ -75,6 +78,8 @@ def getFromWeb(filepath):
         resultFiles.append(line.split('/')[-1].split('?')[-1])
     file.close()
     for i in range(len(urls)):
+        if i == 0 and not updateCal:
+            i += 1
         filepath = resultFiles[i]
         url = urls[i]
         file = open(filepath, 'w')
@@ -92,7 +97,6 @@ def debugPrint(msg):
 
 
 def addMeetingData(filepath, meeting):
-    # todo
     meeting.url = 'https://www.when2meet.com/?' + filepath
     file = open(filepath, 'r')
     lastLine = ''
@@ -108,8 +112,10 @@ def addMeetingData(filepath, meeting):
             print(meeting.name)
         if "TimeOfSlot[0]" in line:
             meeting.startTime = datetime.fromtimestamp(int(line.split('=')[1].split(";")[0]))
+            meeting.slots = line.split('=')[1].split(";")[0]
             print(meeting.startTime)
-        if "var AvailableIDs=new Array();" in line and "TimeOfSlot" in twoAgo:
+        if ("var AvailableIDs=new Array();" in line and "TimeOfSlot" in twoAgo) or \
+           ("PeopleNames[0]" in line and "TimeOfSlot" in twoAgo):
             meeting.endTime = datetime.fromtimestamp(int(twoAgo.split('=')[1].split(";")[0])) + timedelta(minutes=15)
             print(meeting.endTime)
         twoAgo = lastLine
