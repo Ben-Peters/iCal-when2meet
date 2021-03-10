@@ -37,6 +37,8 @@ class When2Meet:
     personID = 0
 
     def calculateLength(self):
+        self.startTime.replace(tzinfo=datetime.now().astimezone().tzinfo)
+        self.startTime.replace(tzinfo=datetime.now().astimezone().tzinfo)
         self.days = (self.endTime - self.startTime).days + 1
         self.hours = (self.endTime.hour - self.startTime.hour)
         # self.slots = (self.startTime-datetime(1970, 1, 1)+timedelta(hours=5)).total_seconds()
@@ -52,7 +54,19 @@ class When2Meet:
 
     def setUnavailable(self, startTime, endTime):
         # todo: make this work
-
+        startTime = startTime.replace(tzinfo=None)
+        endTime = endTime.replace(tzinfo=None)
+        if endTime.replace(day=1, month=1, year=1) > self.endTime.replace(day=1, month=1, year=1):
+            endTime = endTime.replace(hour=self.endTime.hour, minute=self.endTime.minute)
+        if startTime.replace(day=1, month=1, year=1) < self.startTime.replace(day=1, month=1, year=1):
+            startTime = startTime.replace(hour=self.startTime.hour, minute=self.startTime.minute)
+        hours = int((endTime-startTime).seconds / 3600)
+        minutes = int(((endTime - startTime).seconds - (hours * 3600)) / 60)
+        length = (hours * 4) + int((minutes + 14) / 15)
+        start = int(((startTime-self.startTime).days * self.hours * 4) +
+                    (startTime - self.startTime).seconds / 3600 * 4)
+        for i in range(length):
+            self.availability[i+start] = "0"
         return
 
 
@@ -139,10 +153,14 @@ def updateMeeting(cal, meeting):
     events = recurring_ical_events.of(cal).between(meeting.startTime, meeting.endTime)
     for event in events:
         if event.get('X-MICROSOFT-CDO-BUSYSTATUS') == 'BUSY':
-            meeting.setUnavailable(event.get('dtstart').dt, event.get('dtend').dt)
-        print(event.get('summary'), end='')
-        print(': ', end='')
-        print(event.get('dtstart').dt)
+            if meeting.startTime.replace(day=1, month=1, year=1) <= \
+                    event.get('dtstart').dt.replace(tzinfo=None, day=1, month=1, year=1) < \
+                    meeting.endTime.replace(day=1, month=1, year=1) or \
+                    (event.get('dtend').dt.replace(tzinfo=None, day=1, month=1, year=1) > meeting.startTime.replace(day=1, month=1, year=1) > event.get('dtstart').dt.replace(tzinfo=None, day=1, month=1, year=1)):
+                meeting.setUnavailable(event.get('dtstart').dt, event.get('dtend').dt)
+                print(event.get('summary'), end='')
+                print(': ', end='')
+                print(event.get('dtstart').dt)
 
     return
 
