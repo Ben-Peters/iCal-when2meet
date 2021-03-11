@@ -1,6 +1,5 @@
-import vobject
 import argparse
-from datetime import *
+import datetime
 import requests
 import recurring_ical_events
 import icalendar
@@ -35,7 +34,7 @@ def main():
         meeting = meetings[i]
         file = when2meetFiles[i]
         meeting.parseHTML(file)
-        if datetime.now() > (meeting.endTime + timedelta(days=7)):
+        if datetime.now() > (meeting.endTime + datetime.timedelta(days=7)):
             print('Old when2meet, not processing')
             continue
         meeting.login()
@@ -118,7 +117,7 @@ class When2Meet:
                 self.slots.append(line.split('=')[1].split(";")[0] + '%')
             if ("var AvailableIDs=new Array();" in line and "TimeOfSlot" in twoAgo) or \
                     ("PeopleNames[0]" in line and "TimeOfSlot" in twoAgo):
-                self.endTime = datetime.fromtimestamp(int(twoAgo.split('=')[1].split(";")[0])) + timedelta(
+                self.endTime = datetime.fromtimestamp(int(twoAgo.split('=')[1].split(";")[0])) + datetime.timedelta(
                     minutes=15)
                 print(self.endTime)
                 break
