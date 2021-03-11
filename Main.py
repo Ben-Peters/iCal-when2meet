@@ -35,6 +35,8 @@ def main():
         meeting = meetings[i]
         file = when2meetFiles[i]
         meeting.parseHTML(file)
+        if datetime.now() > (meeting.endTime + timedelta(days=7)):
+            continue
         meeting.login()
         meeting.updateAvail(cal)
         meeting.postAvail()
