@@ -156,30 +156,33 @@ class When2Meet:
         self.__init__()
 
 
-def getFromWeb(filepath):
-    file = open(filepath, 'r')
+def getFromWeb(urlPath):
+    urlF = open(urlPath, 'r')
     urls = []
     resultFiles = []
+    iCalStream = ''
     while True:
-        line = file.readline()
+        line = urlF.readline()
         line = line.split('\n')[0]
         if not line:
             break
         urls.append(line)
         resultFiles.append('.tmp/' + line.split('/')[-1].split('?')[-1])
-    file.close()
+    urlF.close()
     for i in range(len(urls)):
-        if i == 0 and not updateCal:
-            i += 1
         filepath = resultFiles[i]
         url = urls[i]
+        if i == 0 and updateCal:
+            iCalStream = requests.get(url).text.replace('\r', '')
+            continue
         file = open(filepath, 'w')
         debugPrint(url)
-        data = requests.get(url).text.replace('\r', '')
-        debugPrint(data)
-        file.write(data)
+        # data = requests.get(url).text.replace('\r', '')
+        # debugPrint(data)
+        file.write(requests.get(url).text.replace('\r', ''))
+        file.close()
     resultFiles = resultFiles[1:]
-    return resultFiles
+    return iCalStream, resultFiles
 
 
 def debugPrint(msg):
@@ -195,8 +198,9 @@ def cleanupFiles(fileList):
 
 
 def main():
-    when2meetFiles = getFromWeb(urlFile)
-    iCalStream = open(static).read()
+    (iCalStream, when2meetFiles) = getFromWeb(urlFile)
+    if not updateCal:
+        iCalStream = open(static).read()
     cal = icalendar.Calendar.from_ical(iCalStream)
     # cal = calObj.contents.get('vevent')
     meetings = [When2Meet() for i in range(len(when2meetFiles))]
