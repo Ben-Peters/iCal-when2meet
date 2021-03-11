@@ -36,6 +36,7 @@ def main():
         file = when2meetFiles[i]
         meeting.parseHTML(file)
         if datetime.now() > (meeting.endTime + timedelta(days=7)):
+            print('Old when2meet, not processing')
             continue
         meeting.login()
         meeting.updateAvail(cal)
@@ -94,7 +95,7 @@ class When2Meet:
         return
 
     def parseHTML(self, filepath):
-        self.url = 'https://www.when2meet.com/?' + filepath
+        self.url = 'https://www.when2meet.com/?' + filepath.split('/')[1]
         file = open(filepath, 'r')
         lastLine = ''
         twoAgo = ''
