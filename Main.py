@@ -24,6 +24,25 @@ else:
     static = '.tmp/calendar.ics'
 
 
+def main():
+    (iCalStream, when2meetFiles) = getFromWeb(urlFile)
+    if not updateCal:
+        iCalStream = open(static).read()
+    cal = icalendar.Calendar.from_ical(iCalStream)
+    # cal = calObj.contents.get('vevent')
+    meetings = [When2Meet() for i in range(len(when2meetFiles))]
+    for i in range(len(when2meetFiles)):
+        meeting = meetings[i]
+        file = when2meetFiles[i]
+        meeting.parseHTML(file)
+        meeting.login()
+        meeting.updateAvail(cal)
+        meeting.postAvail()
+        meeting.clear()
+    cleanupFiles(when2meetFiles)
+    return
+
+
 class When2Meet:
     """A class to hold all information about a when2meet"""
 
@@ -55,7 +74,6 @@ class When2Meet:
         self.eventID = self.url.split('?')[1].split('-')[0]
 
     def setUnavailable(self, startTime, endTime):
-        # todo: make this work
         startTime = startTime.replace(tzinfo=None)
         endTime = endTime.replace(tzinfo=None)
         if endTime.replace(day=1, month=1, year=1) > self.endTime.replace(day=1, month=1, year=1):
@@ -114,7 +132,8 @@ class When2Meet:
         for event in events:
             if event.get('X-MICROSOFT-CDO-BUSYSTATUS') == 'BUSY':
                 if (self.startTime.replace(day=1, month=1, year=1) <=
-                    event.get('dtstart').dt.replace(tzinfo=None, day=1, month=1, year=1) < self.endTime.replace(day=1, month=1, year=1)) or \
+                    event.get('dtstart').dt.replace(tzinfo=None, day=1, month=1, year=1) <
+                    self.endTime.replace(day=1, month=1, year=1)) or \
                         (event.get('dtstart').dt.replace(tzinfo=None, day=1, month=1, year=1) < self.endTime.replace(
                             day=1, month=1, year=1)):
                     self.setUnavailable(event.get('dtstart').dt, event.get('dtend').dt)
@@ -191,29 +210,10 @@ def debugPrint(msg):
 
 
 def cleanupFiles(fileList):
-    # todo
     for file in fileList:
         os.remove(file)
     return
 
 
-def main():
-    (iCalStream, when2meetFiles) = getFromWeb(urlFile)
-    if not updateCal:
-        iCalStream = open(static).read()
-    cal = icalendar.Calendar.from_ical(iCalStream)
-    # cal = calObj.contents.get('vevent')
-    meetings = [When2Meet() for i in range(len(when2meetFiles))]
-    for i in range(len(when2meetFiles)):
-        meeting = meetings[i]
-        file = when2meetFiles[i]
-        meeting.parseHTML(file)
-        meeting.login()
-        meeting.updateAvail(cal)
-        meeting.postAvail()
-        meeting.clear()
-    cleanupFiles(when2meetFiles)
-    return
-
-
-main()
+if __name__ == '__main__':
+    main()
