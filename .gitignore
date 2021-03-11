@@ -2,6 +2,7 @@
 .idea/*
 venv/*
 .tmp/*
+.data/*
 cmake-build-default/*
 CMakeLists.txt
 /shelf/
