@@ -33,7 +33,7 @@ class When2Meet:
     hours = endTime - startTime
     availability = []
     eventID = 0
-    slots = startTime
+    slots = []
     personID = 0
 
     def calculateLength(self):
@@ -67,6 +67,8 @@ class When2Meet:
                     (startTime - self.startTime).seconds / 3600 * 4)
         for i in range(length):
             self.availability[i+start] = "0"
+            #self.slot = (startTime-datetime(1970, 1, 1) + timedelta(hours=5)).total_seconds()
+            #postAvail(self)
         return
 
 
@@ -123,6 +125,7 @@ def addMeetingData(filepath, meeting):
     file = open(filepath, 'r')
     lastLine = ''
     twoAgo = ''
+    timeArray = False
     while True:
 
         line = file.readline()
@@ -134,12 +137,16 @@ def addMeetingData(filepath, meeting):
             print(meeting.name)
         if "TimeOfSlot[0]" in line:
             meeting.startTime = datetime.fromtimestamp(int(line.split('=')[1].split(";")[0]))
-            meeting.slots = line.split('=')[1].split(";")[0]
+            # meeting.slots.append(line.split('=')[1].split(";")[0] + '%')
             print(meeting.startTime)
+            timeArray = True
+        if "TimeOfSlot[" in line and timeArray:
+            meeting.slots.append(line.split('=')[1].split(";")[0] + '%')
         if ("var AvailableIDs=new Array();" in line and "TimeOfSlot" in twoAgo) or \
                 ("PeopleNames[0]" in line and "TimeOfSlot" in twoAgo):
             meeting.endTime = datetime.fromtimestamp(int(twoAgo.split('=')[1].split(";")[0])) + timedelta(minutes=15)
             print(meeting.endTime)
+            break
         twoAgo = lastLine
         lastLine = line
     meeting.calculateLength()
@@ -191,7 +198,7 @@ def postAvail(meeting):
                 'availability': ''.join(meeting.availability),
                 '_': ''}
     response = requests.post(url, data=formData)
-    print(response)
+    # print(response)
     return
 
 
@@ -205,7 +212,8 @@ def main():
     iCalStream = open(static).read()
     cal = icalendar.Calendar.from_ical(iCalStream)
     # cal = calObj.contents.get('vevent')
-    for file in when2meetFiles:
+    meetings = [When2Meet for i in range(len(when2meetFiles))]
+    for file, meeting in zip(when2meetFiles, meetings):
         meeting = When2Meet()
         addMeetingData(file, meeting)
         login(meeting)
