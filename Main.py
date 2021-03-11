@@ -21,7 +21,7 @@ if args.static:
     static = args.static
     updateCal = False
 else:
-    static = 'calendar.ics'
+    static = '.tmp/calendar.ics'
 
 
 class When2Meet:
@@ -166,7 +166,7 @@ def getFromWeb(filepath):
         if not line:
             break
         urls.append(line)
-        resultFiles.append(line.split('/')[-1].split('?')[-1])
+        resultFiles.append('.tmp/' + line.split('/')[-1].split('?')[-1])
     file.close()
     for i in range(len(urls)):
         if i == 0 and not updateCal:
