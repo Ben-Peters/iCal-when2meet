@@ -8,7 +8,7 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--filepath', type=str, help='filepath to text file with iCal url as well as a list of when2meet '
-                                                 'urls to update (default: ./urls.txt)', default='urls.txt')
+                                                 'urls to update (default: .data/urls.txt)', default='.data/urls.txt')
 parser.add_argument('--verbosity', type=int, choices=[0, 1, 2], help='0:No output 1:Changes made 2:debugging output')
 parser.add_argument('--static', type=str, help='filepath of local iCal file to use')
 # parser.add_argument('--update', type=bool, default=True, help='Set to false to use already downloaded calendar')
@@ -125,7 +125,7 @@ class When2Meet:
         return
 
     def login(self):
-        file = open('creds.jpg', 'r')
+        file = open('.data/creds.jpg', 'r')
         name = file.readline().split('\n')[0]
         password = file.readline().split('\n')[0]
         meetingID = self.eventID
@@ -189,6 +189,8 @@ def debugPrint(msg):
 
 def cleanupFiles(fileList):
     # todo
+    for file in fileList:
+        os.remove(file)
     return
 
 
