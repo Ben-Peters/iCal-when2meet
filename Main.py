@@ -34,7 +34,7 @@ def main():
         meeting = meetings[i]
         file = when2meetFiles[i]
         meeting.parseHTML(file)
-        if datetime.now() > (meeting.endTime + datetime.timedelta(days=7)):
+        if datetime.datetime.now() > (meeting.endTime + datetime.timedelta(days=7)):
             print('Old when2meet, not processing')
             continue
         meeting.login()
@@ -52,7 +52,7 @@ class When2Meet:
         self.name = ''
         self.url = ''
         self.days = 0
-        self.startTime, self.endTime = datetime.now(), datetime.now()
+        self.startTime, self.endTime = datetime.datetime.now(), datetime.datetime.now()
         self.hours = 0
         self.availability = []
         self.eventID = 0
@@ -60,8 +60,8 @@ class When2Meet:
         self.personID = 0
 
     def calculateLength(self):
-        self.startTime.replace(tzinfo=datetime.now().astimezone().tzinfo)
-        self.startTime.replace(tzinfo=datetime.now().astimezone().tzinfo)
+        self.startTime.replace(tzinfo=datetime.datetime.now().astimezone().tzinfo)
+        self.startTime.replace(tzinfo=datetime.datetime.now().astimezone().tzinfo)
         self.days = (self.endTime - self.startTime).days + 1
         self.hours = (self.endTime.hour - self.startTime.hour)
         # self.slots = (self.startTime-datetime(1970, 1, 1)+timedelta(hours=5)).total_seconds()
