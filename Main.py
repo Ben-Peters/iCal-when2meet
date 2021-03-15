@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime as dt
 import datetime
 import requests
 import recurring_ical_events
@@ -34,7 +35,7 @@ def main():
         meeting = meetings[i]
         file = when2meetFiles[i]
         meeting.parseHTML(file)
-        if datetime.datetime.now() > (meeting.endTime + datetime.timedelta(days=7)):
+        if dt.now() > (meeting.endTime + datetime.timedelta(days=7)):
             print('Old when2meet, not processing')
             continue
         meeting.login()
@@ -52,7 +53,7 @@ class When2Meet:
         self.name = ''
         self.url = ''
         self.days = 0
-        self.startTime, self.endTime = datetime.datetime.now(), datetime.datetime.now()
+        self.startTime, self.endTime = dt.now(), dt.now()
         self.hours = 0
         self.availability = []
         self.eventID = 0
@@ -60,8 +61,8 @@ class When2Meet:
         self.personID = 0
 
     def calculateLength(self):
-        self.startTime.replace(tzinfo=datetime.datetime.now().astimezone().tzinfo)
-        self.startTime.replace(tzinfo=datetime.datetime.now().astimezone().tzinfo)
+        self.startTime.replace(tzinfo=dt.now().astimezone().tzinfo)
+        self.startTime.replace(tzinfo=dt.now().astimezone().tzinfo)
         self.days = (self.endTime - self.startTime).days + 1
         self.hours = (self.endTime.hour - self.startTime.hour)
         # self.slots = (self.startTime-datetime(1970, 1, 1)+timedelta(hours=5)).total_seconds()
@@ -109,7 +110,7 @@ class When2Meet:
                 self.name = line.split('<title>')[1].split(' - When2meet')[0]
                 print(self.name)
             if "TimeOfSlot[0]" in line:
-                self.startTime = datetime.fromtimestamp(int(line.split('=')[1].split(";")[0]))
+                self.startTime = dt.fromtimestamp(int(line.split('=')[1].split(";")[0]))
                 # self.slots.append(line.split('=')[1].split(";")[0] + '%')
                 print(self.startTime)
                 timeArray = True
@@ -117,7 +118,7 @@ class When2Meet:
                 self.slots.append(line.split('=')[1].split(";")[0] + '%')
             if ("var AvailableIDs=new Array();" in line and "TimeOfSlot" in twoAgo) or \
                     ("PeopleNames[0]" in line and "TimeOfSlot" in twoAgo):
-                self.endTime = datetime.fromtimestamp(int(twoAgo.split('=')[1].split(";")[0])) + datetime.timedelta(
+                self.endTime = dt.fromtimestamp(int(twoAgo.split('=')[1].split(";")[0])) + datetime.timedelta(
                     minutes=15)
                 print(self.endTime)
                 break
