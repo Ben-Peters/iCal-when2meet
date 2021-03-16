@@ -75,7 +75,7 @@ class When2Meet:
             self.availability.append('1')
 
     def initEventID(self):
-        self.eventID = self.url.split('?')[1].split('-')[0]
+        self.eventID = self.url.split('?')[-1].split('-')[0]
 
     def setUnavailable(self, startTime, endTime):
         startTime = startTime.replace(tzinfo=None)
@@ -96,7 +96,7 @@ class When2Meet:
         return
 
     def parseHTML(self, filepath):
-        self.url = 'https://www.when2meet.com/?' + filepath.split('/')[1]
+        self.url = 'https://www.when2meet.com/?' + filepath.split('/')[-1]
         file = open(filepath, 'r')
         lastLine = ''
         twoAgo = ''
@@ -160,7 +160,8 @@ class When2Meet:
                     '_': ''}
         response = requests.post(url, data=formData)
         self.personID = response.text
-        # print(response.text)
+        print(formData)
+        print(self.personID)
         return
 
     def postAvail(self):
