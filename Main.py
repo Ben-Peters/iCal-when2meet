@@ -148,7 +148,7 @@ class When2Meet:
         return
 
     def login(self):
-        file = open('.data/creds.jpg', 'r')
+        file = open(args.datapath + '.data/creds.jpg', 'r')
         name = file.readline().split('\n')[0]
         password = file.readline().split('\n')[0]
         meetingID = self.eventID
