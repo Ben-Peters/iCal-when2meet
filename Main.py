@@ -10,17 +10,18 @@ parser.add_argument('--filepath', type=str, help='filepath to text file with iCa
                                                  'urls to update (default: .data/urls.txt)', default='.data/urls.txt')
 parser.add_argument('--verbosity', type=int, choices=[0, 1, 2], help='0:No output 1:Changes made 2:debugging output')
 parser.add_argument('--static', type=str, help='filepath of local iCal file to use')
+parser.add_argument('--datapath', type=str, help='filepath to directory containing .data/ and .tmp/', default='')
 # parser.add_argument('--update', type=bool, default=True, help='Set to false to use already downloaded calendar')
 args = parser.parse_args()
 
-urlFile = args.filepath
+urlFile = args.datapath + args.filepath
 verbosity = args.verbosity
 updateCal = True
 if args.static:
     static = args.static
     updateCal = False
 else:
-    static = '.tmp/calendar.ics'
+    static = args.datapath + '.tmp/calendar.ics'
 
 
 def main():
@@ -188,7 +189,7 @@ def getFromWeb(urlPath):
         if not line:
             break
         urls.append(line)
-        resultFiles.append('.tmp/' + line.split('/')[-1].split('?')[-1])
+        resultFiles.append(args.datapath + '.tmp/' + line.split('/')[-1].split('?')[-1])
     urlF.close()
     for i in range(len(urls)):
         filepath = resultFiles[i]
